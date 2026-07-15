@@ -15,21 +15,21 @@ jobs:
 
     steps:
       - name: download code
-        users: actions/checkout@v6
-      
+        uses: actions/checkout@v6
+
       - name: install Java 17
-        users: actions/setup-java@4
-	with:
-	  distribution: temurin
-	  java-version: "17"
-	  cache: maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
 
       - name: compilation and test
-	run: mvn --batch-mode clean verify
+        run: mvn --batch-mode clean verify
 
-      - name save JAR
-	users: actions/upload-artifact@v4
-	with:
-	  name: ralationship-manager
-	  path: target/*.jar
-	  if-no-files-found: error
+      - name: save JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: relationship-manager
+          path: target/*.jar
+          if-no-files-found: error
