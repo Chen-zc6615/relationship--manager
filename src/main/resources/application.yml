@@ -1,0 +1,34 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: relationship-manager-backend
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:relationship_manager}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    default-property-inclusion: non_null
+    time-zone: Asia/Shanghai
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: 'NULL'
+
+app:
+  jwt:
+    # 生产环境必须设置 JWT_SECRET，并使用随机生成的高强度密钥。
+    secret: ${JWT_SECRET:change-this-development-secret-before-production}
+    expiration-millis: ${JWT_EXPIRATION_MILLIS:604800000}
+
+wechat:
+  mini-program:
+    app-id: ${WECHAT_APP_ID:}
+    app-secret: ${WECHAT_APP_SECRET:}
+
+logging:
+  level:
+    com.relationship.manager.mapper: ${MAPPER_LOG_LEVEL:info}
