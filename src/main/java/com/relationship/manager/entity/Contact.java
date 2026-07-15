@@ -8,11 +8,10 @@ public class Contact {
     private Long id;
     private Long userId;
     private String name;
-    private String phone;
-    private String email;
     private String relationshipType;
     private LocalDate birthday;
-    private String notes;
+    private String lastContactMethod;
+    private LocalDateTime lastContactedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -40,22 +39,6 @@ public class Contact {
         this.name = name;
     }
 
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getRelationshipType() {
         return relationshipType;
     }
@@ -72,12 +55,20 @@ public class Contact {
         this.birthday = birthday;
     }
 
-    public String getNotes() {
-        return notes;
+    public String getLastContactMethod() {
+        return lastContactMethod;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setLastContactMethod(String lastContactMethod) {
+        this.lastContactMethod = lastContactMethod;
+    }
+
+    public LocalDateTime getLastContactedAt() {
+        return lastContactedAt;
+    }
+
+    public void setLastContactedAt(LocalDateTime lastContactedAt) {
+        this.lastContactedAt = lastContactedAt;
     }
 
     public LocalDateTime getCreatedAt() {

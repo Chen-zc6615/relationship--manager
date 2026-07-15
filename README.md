@@ -8,6 +8,7 @@
 - 首次登录自动创建用户，后续登录直接返回已有用户
 - JWT 签发与请求过滤，过期或伪造的 token 返回 401
 - 联系人新增、分页查询、关键词搜索、详情、修改和删除
+- 联系互动记录新增、分页查询、修改和删除，自动展示最近联系时间和方式
 - 所有联系人 SQL 均带 `user_id`，不同用户的数据相互隔离
 - Jakarta Validation 参数校验和统一异常响应
 - 微信 `session_key` 不返回给小程序，登录响应也不暴露 `openid`
@@ -117,13 +118,53 @@ Authorization: Bearer <token>
 ```json
 {
   "name": "张三",
-  "phone": "13800138000",
-  "email": "zhangsan@example.com",
   "relationshipType": "朋友",
-  "birthday": "2000-01-01",
-  "notes": "大学同学"
+  "birthday": "2000-01-01"
 }
 ```
+
+联系人列表和详情会根据最新的互动记录返回：
+
+```json
+{
+  "lastContactMethod": "wechat",
+  "lastContactedAt": "2026-07-15T14:00:00"
+}
+```
+
+没有互动记录时，这两个字段为 `null`。
+
+## 联系互动记录接口
+
+| 方法 | 地址 | 功能 |
+|---|---|---|
+| `POST` | `/api/contacts/{contactId}/interactions` | 新增联系记录 |
+| `GET` | `/api/contacts/{contactId}/interactions?page=1&size=20` | 按联系时间倒序分页查询 |
+| `PUT` | `/api/contacts/{contactId}/interactions/{interactionId}` | 修改联系记录 |
+| `DELETE` | `/api/contacts/{contactId}/interactions/{interactionId}` | 删除联系记录 |
+
+新增或修改联系记录的请求体：
+
+```json
+{
+  "contactMethod": "wechat",
+  "contactedAt": "2026-07-15T14:00:00",
+  "notes": "讨论了下周见面的安排"
+}
+```
+
+`contactMethod` 支持：
+
+| 值 | 含义 |
+|---|---|
+| `wechat` | 微信 |
+| `phone` | 电话 |
+| `sms` | 短信 |
+| `in_person` | 见面 |
+| `email` | 邮件 |
+| `other` | 其他 |
+
+`contactedAt` 是实际联系发生的时间，`createdAt` 是记录写入系统的时间。删除联系人时，其互动记录会由数据库外键自动删除。
 
 ## 上线前注意
 

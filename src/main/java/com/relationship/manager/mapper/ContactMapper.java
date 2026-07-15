@@ -14,34 +14,48 @@ public interface ContactMapper {
 
     @Insert("""
             INSERT INTO contacts
-                (user_id, name, phone, email, relationship_type, birthday, notes)
+                (user_id, name, relationship_type, birthday)
             VALUES
-                (#{userId}, #{name}, #{phone}, #{email}, #{relationshipType}, #{birthday}, #{notes})
+                (#{userId}, #{name}, #{relationshipType}, #{birthday})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Contact contact);
 
     @Select("""
-            SELECT id, user_id, name, phone, email, relationship_type, birthday,
-                   notes, created_at, updated_at
-            FROM contacts
-            WHERE id = #{id} AND user_id = #{userId}
+            SELECT c.id, c.user_id, c.name, c.relationship_type, c.birthday,
+                   c.created_at, c.updated_at,
+                   (SELECT ci.contact_method
+                    FROM contact_interactions ci
+                    WHERE ci.contact_id = c.id
+                    ORDER BY ci.contacted_at DESC, ci.id DESC
+                    LIMIT 1) AS last_contact_method,
+                   (SELECT ci.contacted_at
+                    FROM contact_interactions ci
+                    WHERE ci.contact_id = c.id
+                    ORDER BY ci.contacted_at DESC, ci.id DESC
+                    LIMIT 1) AS last_contacted_at
+            FROM contacts c
+            WHERE c.id = #{id} AND c.user_id = #{userId}
             """)
     Contact findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
     @Select({
             "<script>",
-            "SELECT id, user_id, name, phone, email, relationship_type, birthday,",
-            "       notes, created_at, updated_at",
-            "FROM contacts",
-            "WHERE user_id = #{userId}",
+            "SELECT c.id, c.user_id, c.name, c.relationship_type, c.birthday,",
+            "       c.created_at, c.updated_at,",
+            "       (SELECT ci.contact_method FROM contact_interactions ci",
+            "        WHERE ci.contact_id = c.id",
+            "        ORDER BY ci.contacted_at DESC, ci.id DESC LIMIT 1) AS last_contact_method,",
+            "       (SELECT ci.contacted_at FROM contact_interactions ci",
+            "        WHERE ci.contact_id = c.id",
+            "        ORDER BY ci.contacted_at DESC, ci.id DESC LIMIT 1) AS last_contacted_at",
+            "FROM contacts c",
+            "WHERE c.user_id = #{userId}",
             "<if test='keyword != null and keyword != \"\"'>",
-            "  AND (name LIKE CONCAT('%', #{keyword}, '%')",
-            "       OR phone LIKE CONCAT('%', #{keyword}, '%')",
-            "       OR email LIKE CONCAT('%', #{keyword}, '%')",
-            "       OR relationship_type LIKE CONCAT('%', #{keyword}, '%'))",
+            "  AND (c.name LIKE CONCAT('%', #{keyword}, '%')",
+            "       OR c.relationship_type LIKE CONCAT('%', #{keyword}, '%'))",
             "</if>",
-            "ORDER BY updated_at DESC, id DESC",
+            "ORDER BY c.updated_at DESC, c.id DESC",
             "LIMIT #{size} OFFSET #{offset}",
             "</script>"
     })
@@ -52,13 +66,11 @@ public interface ContactMapper {
 
     @Select({
             "<script>",
-            "SELECT COUNT(*) FROM contacts",
-            "WHERE user_id = #{userId}",
+            "SELECT COUNT(*) FROM contacts c",
+            "WHERE c.user_id = #{userId}",
             "<if test='keyword != null and keyword != \"\"'>",
-            "  AND (name LIKE CONCAT('%', #{keyword}, '%')",
-            "       OR phone LIKE CONCAT('%', #{keyword}, '%')",
-            "       OR email LIKE CONCAT('%', #{keyword}, '%')",
-            "       OR relationship_type LIKE CONCAT('%', #{keyword}, '%'))",
+            "  AND (c.name LIKE CONCAT('%', #{keyword}, '%')",
+            "       OR c.relationship_type LIKE CONCAT('%', #{keyword}, '%'))",
             "</if>",
             "</script>"
     })
@@ -67,11 +79,8 @@ public interface ContactMapper {
     @Update("""
             UPDATE contacts
             SET name = #{name},
-                phone = #{phone},
-                email = #{email},
                 relationship_type = #{relationshipType},
                 birthday = #{birthday},
-                notes = #{notes},
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = #{id} AND user_id = #{userId}
             """)

@@ -66,11 +66,8 @@ public class ContactService {
 
     private void applyRequest(Contact contact, ContactRequest request) {
         contact.setName(request.getName().trim());
-        contact.setPhone(normalize(request.getPhone()));
-        contact.setEmail(normalize(request.getEmail()));
         contact.setRelationshipType(normalize(request.getRelationshipType()));
         contact.setBirthday(request.getBirthday());
-        contact.setNotes(normalize(request.getNotes()));
     }
 
     private String normalize(String value) {
