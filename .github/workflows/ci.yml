@@ -33,3 +33,34 @@ jobs:
           name: relationship-manager
           path: target/*.jar
           if-no-files-found: error
+
+  deploy:
+    name: deploy to server
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: relationship-manager
+          path: deploy-artifact
+
+      - name: configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+      - name: upload JAR
+        run: |
+          scp deploy-artifact/*.jar \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/relationship-manager/app.jar.new"
+
+      - name: restart service
+        run: |
+          ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            'mv /opt/relationship-manager/app.jar.new /opt/relationship-manager/app.jar && sudo systemctl restart relationship-manager && sudo systemctl is-active relationship-manager'
